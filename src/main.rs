@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 
 #[derive(Parser)]
 #[clap(name = "Japanese-French Vocabulary")]
-#[clap(author = "Your Name")]
+#[clap(author = "Jean-Philippe Bidegain")]
 #[clap(version = "1.0")]
 #[clap(about = "Learn Japanese words with French translations")]
 struct Cli {
