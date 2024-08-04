@@ -1,10 +1,11 @@
 use clap::{Parser, Subcommand};
-use inquire::{Text, Select};
+use colored::*;
+use inquire::Text;
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
-use std::io::{BufReader, BufWriter, Write};
+use std::io::{BufReader, BufWriter};
 use std::path::Path;
-use rand::seq::SliceRandom;
 
 #[derive(Parser)]
 #[clap(name = "Japanese-French Vocabulary")]
@@ -77,7 +78,7 @@ fn add_word(japanese: &str, french: &str) {
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &words).expect("Unable to write to file");
 
-    println!("Word added successfully!");
+    println!("{} Word added successfully! 🎉", "Success:".green().bold());
 }
 
 fn start_quiz() {
@@ -101,17 +102,35 @@ fn start_quiz() {
     for (i, word) in quiz_words.iter().enumerate() {
         println!("\nQuestion {} of 10:", i + 1);
 
-        let answer = Text::new(&format!("What's the French translation of '{}'?", word.japanese))
-            .prompt()
-            .unwrap();
+        let answer = Text::new(&format!(
+            "What's the French translation of '{}'?",
+            word.japanese.yellow()
+        ))
+        .prompt()
+        .unwrap();
 
         if answer.to_lowercase() == word.french.to_lowercase() {
-            println!("Correct!");
+            println!("{} 🎉", "Correct!".green().bold());
             score += 1;
         } else {
-            println!("Incorrect. The correct answer is: {}", word.french);
+            println!(
+                "{} The correct answer is: {}",
+                "Incorrect.".red().bold(),
+                word.french.green()
+            );
         }
     }
 
-    println!("\nQuiz completed! Your score: {} out of 10", score);
+    println!(
+        "\n{} Your score: {} out of 10 {}",
+        "Quiz completed!".blue().bold(),
+        score.to_string().yellow().bold(),
+        if score >= 8 {
+            "🏆"
+        } else if score >= 5 {
+            "👍"
+        } else {
+            "🌱"
+        }
+    );
 }
