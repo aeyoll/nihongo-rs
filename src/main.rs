@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use inquire::{Text, Select};
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter, Write};
@@ -18,12 +19,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     #[clap(about = "Add a new word")]
-    Add {
-        #[clap(help = "The Japanese word")]
-        japanese: String,
-        #[clap(help = "The French translation")]
-        french: String,
-    },
+    Add,
     #[clap(about = "Start a quiz session")]
     Quiz,
 }
@@ -38,8 +34,11 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Add { japanese, french } => {
-            add_word(japanese, french);
+        Commands::Add => {
+            let japanese = Text::new("Enter the Japanese word:").prompt().unwrap();
+            let french = Text::new("Enter the French translation:").prompt().unwrap();
+
+            add_word(&japanese, &french);
         }
         Commands::Quiz => {
             start_quiz();
@@ -101,11 +100,10 @@ fn start_quiz() {
 
     for (i, word) in quiz_words.iter().enumerate() {
         println!("\nQuestion {} of 10:", i + 1);
-        println!("What's the French translation of '{}'?", word.japanese);
 
-        let mut answer = String::new();
-        std::io::stdin().read_line(&mut answer).expect("Failed to read line");
-        let answer = answer.trim();
+        let answer = Text::new(&format!("What's the French translation of '{}'?", word.japanese))
+            .prompt()
+            .unwrap();
 
         if answer.to_lowercase() == word.french.to_lowercase() {
             println!("Correct!");
