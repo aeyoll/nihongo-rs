@@ -24,6 +24,14 @@ This Rust program helps users learn Japanese vocabulary by allowing them to add 
 
 ## Installation
 
+### From crates.io
+
+```sh
+cargo install nihongo
+```
+
+### From source
+
 1. Clone this repository:
 
 ```sh
@@ -46,7 +54,7 @@ cargo run -- add <japanese_word> <french_translation>
 Example:
 
 ```sh
-cargo run -- add 言葉 mot
+nihongo add
 ```
 
 ### Taking a quiz
@@ -54,7 +62,7 @@ cargo run -- add 言葉 mot
 To start a 10-question quiz:
 
 ```sh
-cargo run -- quiz
+nihongo quiz
 ```
 
 Note: You need to have at least 10 words in your vocabulary list before you can take a quiz.
