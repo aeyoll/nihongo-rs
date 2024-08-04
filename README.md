@@ -35,7 +35,8 @@ cargo install nihongo
 1. Clone this repository:
 
 ```sh
-git clone https://github.com/yourusername/japanese-french-vocabulary.git cd japanese-french-vocabulary
+git clone https://github.com/yourusername/japanese-french-vocabulary.git 
+cd japanese-french-vocabulary
 ```
 
 2. Build the project:
@@ -49,7 +50,6 @@ cargo build --release
 ### Adding a word
 
 To add a new word to your vocabulary list:
-cargo run -- add <japanese_word> <french_translation>
 
 Example:
 
