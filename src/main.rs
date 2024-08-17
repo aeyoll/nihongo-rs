@@ -21,8 +21,6 @@ enum Commands {
     Add,
     #[clap(about = "Start a quiz session")]
     Quiz,
-    #[clap(about = "Deduplicate words")]
-    Deduplicate,
 }
 
 fn main() {
@@ -38,9 +36,6 @@ fn main() {
         }
         Commands::Quiz => {
             srs.start_quiz();
-        }
-        Commands::Deduplicate => {
-            srs.deduplicate();
         }
     }
 }

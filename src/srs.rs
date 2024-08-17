@@ -42,6 +42,13 @@ impl Srs {
         serde_json::to_writer_pretty(writer, &words).expect("Unable to write to file");
     }
 
+    /// Select the quiz words
+    /// Each word has a weight based on its success rate and the number of tries it has received
+    /// The weight is calculated as follows:
+    /// weight = 1 - (success_rate / tries)
+    /// The total weight is calculated as the sum of all weights
+    /// The random value is then generated between 0 and the total weight
+    /// Each word is then selected until the random value is less than its weight
     fn select_quiz_words(self, words: &[Word], count: usize) -> Vec<&Word> {
         let mut rng = rand::thread_rng();
         let mut selected_words = Vec::new();
@@ -72,6 +79,7 @@ impl Srs {
         selected_words
     }
 
+    /// Add a new word to the vocabulary list
     pub fn add_word(self, japanese: &str, french: &str) {
         let mut words: Vec<Word> = self.get_words_from_file();
 
@@ -82,31 +90,24 @@ impl Srs {
             tries: 0,
         };
 
-        // Add the new word
-        words.push(word);
+        // Add the new word if it doesn't already exist
+        if !words.iter().any(|w| w.japanese == word.japanese) {
+            words.push(word);
 
-        // Write the updated words list back to the file
-        self.save_words_to_file(&words);
+            // Write the updated words list back to the file
+            self.save_words_to_file(&words);
 
-        println!("{} Word added successfully! 🎉", "Success:".green().bold());
-    }
-
-    pub fn deduplicate(self) {
-        let mut words: Vec<Word> = self.get_words_from_file();
-
-        let mut unique_words = Vec::new();
-
-        for word in words.iter() {
-            if !unique_words.contains(&word.japanese) {
-                unique_words.push(word.japanese.clone());
-            }
+            println!("{} Word added successfully! 🎉", "Success:".green().bold());
+        } else {
+            println!("{} Word already exists! 😕", "Warning:".yellow().bold());
         }
-
-        words.retain(|w| unique_words.contains(&w.japanese));
-
-        self.save_words_to_file(&words);
     }
 
+    /// Start a quiz session
+    /// The quiz consists of 10 questions, each with a random selection of words from the vocabulary list
+    /// The user is asked to answer the question and the correct answer is displayed
+    /// If the user's answer is correct, their score is incremented
+    /// The quiz is then repeated until the user has scored at least 8 points
     pub fn start_quiz(self) {
         let mut words: Vec<Word> = self.get_words_from_file();
 
