@@ -1,4 +1,5 @@
 use crate::models::Word;
+use base64::{engine::general_purpose::URL_SAFE, Engine as _};
 use colored::Colorize;
 use inquire::Text;
 use rand::Rng;
@@ -52,6 +53,7 @@ impl Srs {
     fn select_quiz_words(self, words: &[Word], count: usize) -> Vec<&Word> {
         let mut rng = rand::thread_rng();
         let mut selected_words = Vec::new();
+        let mut selected_indexes: Vec<usize> = Vec::new();
 
         let mut i = count;
 
@@ -63,11 +65,12 @@ impl Srs {
 
             let mut random_value = rng.gen::<f64>() * total_weight;
 
-            for word in words {
+            for (index, word) in words.iter().enumerate() {
                 let weight = 1.0 - (word.success as f64 / word.tries.max(1) as f64);
 
                 if (random_value <= weight || word.tries == 0) && !selected_words.contains(&word) {
                     selected_words.push(word);
+                    selected_indexes.push(index);
                     i -= 1;
                     break;
                 }
@@ -75,6 +78,15 @@ impl Srs {
                 random_value -= weight;
             }
         }
+
+        // Print the seed
+        let seed_as_string = selected_indexes
+            .iter()
+            .map(|&i| i.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+        let seed_as_base64 = URL_SAFE.encode(seed_as_string);
+        println!("Seed: {}", seed_as_base64);
 
         selected_words
     }
@@ -108,7 +120,7 @@ impl Srs {
     /// The user is asked to answer the question and the correct answer is displayed
     /// If the user's answer is correct, their score is incremented
     /// The quiz is then repeated until the user has scored at least 8 points
-    pub fn start_quiz(self) {
+    pub fn start_quiz(self, seed: &Option<String>) {
         let mut words: Vec<Word> = self.get_words_from_file();
 
         if words.len() < 10 {
@@ -117,7 +129,24 @@ impl Srs {
         }
 
         let base_words = words.clone();
-        let quiz_words = self.select_quiz_words(&base_words, 10);
+
+        // Get the quiz words from the seed if provided
+        let quiz_words = if let Some(seed) = seed {
+            let seed_as_bytes = URL_SAFE.decode(seed).unwrap();
+            let seed_as_string = String::from_utf8(seed_as_bytes).unwrap();
+            let seed_as_numbers: Vec<usize> = seed_as_string
+                .split(',')
+                .map(|s| s.parse::<usize>().unwrap())
+                .collect();
+
+            seed_as_numbers
+                .iter()
+                .map(|&i| &base_words[i])
+                .collect::<Vec<&Word>>()
+        } else {
+            self.select_quiz_words(&base_words, 10)
+        };
+
         let mut score = 0;
 
         for (i, word) in quiz_words.iter().enumerate() {

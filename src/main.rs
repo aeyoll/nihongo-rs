@@ -20,7 +20,10 @@ enum Commands {
     #[clap(about = "Add a new word")]
     Add,
     #[clap(about = "Start a quiz session")]
-    Quiz,
+    Quiz {
+        #[arg(short, long)]
+        seed: Option<String>,
+    },
 }
 
 fn main() {
@@ -34,8 +37,8 @@ fn main() {
 
             srs.add_word(&japanese, &french);
         }
-        Commands::Quiz => {
-            srs.start_quiz();
+        Commands::Quiz { seed } => {
+            srs.start_quiz(seed);
         }
     }
 }
