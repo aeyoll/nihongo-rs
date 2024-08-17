@@ -92,7 +92,7 @@ impl Srs {
     }
 
     /// Add a new word to the vocabulary list
-    pub fn add_word(self, japanese: &str, french: &str) {
+    pub fn add_word(self, japanese: &str, french: &str) -> Result<String, anyhow::Error> {
         let mut words: Vec<Word> = self.get_words_from_file();
 
         let word = Word {
@@ -103,16 +103,17 @@ impl Srs {
         };
 
         // Add the new word if it doesn't already exist
-        if !words.iter().any(|w| w.japanese == word.japanese) {
-            words.push(word);
-
-            // Write the updated words list back to the file
-            self.save_words_to_file(&words);
-
-            println!("{} Word added successfully! 🎉", "Success:".green().bold());
-        } else {
-            println!("{} Word already exists! 😕", "Warning:".yellow().bold());
+        if words.iter().any(|w| w.japanese == word.japanese) {
+            return Err(anyhow::anyhow!("{} Word already exists! 😕", "Warning:".yellow().bold()));
         }
+
+        words.push(word);
+
+        // Write the updated words list back to the file
+        self.save_words_to_file(&words);
+
+        // Return a success message
+        Ok(format!("{} Word added successfully! 🎉", "Success:".green().bold()))
     }
 
     /// Start a quiz session
@@ -120,15 +121,14 @@ impl Srs {
     /// The user is asked to answer the question and the correct answer is displayed
     /// If the user's answer is correct, their score is incremented
     /// The quiz is then repeated until the user has scored at least 8 points
-    pub fn start_quiz(self, count: &usize, seed: &Option<String>) {
+    pub fn start_quiz(self, count: &usize, seed: &Option<String>) -> Result<String, anyhow::Error> {
         let mut words: Vec<Word> = self.get_words_from_file();
 
         if words.len() < *count {
-            println!(
+            return Err(anyhow::anyhow!(
                 "Not enough words for a quiz. Please add at least {} words.",
                 count
-            );
-            return;
+            ));
         }
 
         let base_words = words.clone();
@@ -159,8 +159,7 @@ impl Srs {
                 "What's the French translation of '{}'?",
                 word.japanese.yellow()
             ))
-            .prompt()
-            .unwrap();
+            .prompt()?;
 
             // Find the word in the original list to update its stats
             if let Some(original_word) = words.iter_mut().find(|w| w.japanese == word.japanese) {
@@ -186,7 +185,7 @@ impl Srs {
         // Calculate the quiz ratio
         let ratio = score as f64 / *count as f64;
 
-        println!(
+        let message = format!(
             "\n{} Your score: {} out of {} {}",
             "Quiz completed!".blue().bold(),
             score.to_string().yellow().bold(),
@@ -199,5 +198,7 @@ impl Srs {
                 "🌱"
             }
         );
+
+        Ok(message)
     }
 }
