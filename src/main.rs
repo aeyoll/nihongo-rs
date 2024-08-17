@@ -21,6 +21,9 @@ enum Commands {
     Add,
     #[clap(about = "Start a quiz session")]
     Quiz {
+        #[arg(short, long, default_value = "10")]
+        count: usize,
+
         #[arg(short, long)]
         seed: Option<String>,
     },
@@ -37,8 +40,8 @@ fn main() {
 
             srs.add_word(&japanese, &french);
         }
-        Commands::Quiz { seed } => {
-            srs.start_quiz(seed);
+        Commands::Quiz { count, seed } => {
+            srs.start_quiz(count, seed);
         }
     }
 }

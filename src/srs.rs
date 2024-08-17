@@ -55,7 +55,7 @@ impl Srs {
         let mut selected_words = Vec::new();
         let mut selected_indexes: Vec<usize> = Vec::new();
 
-        let mut i = count;
+        let mut i = count as i32;
 
         while i > 0 {
             let total_weight: f64 = words
@@ -120,11 +120,14 @@ impl Srs {
     /// The user is asked to answer the question and the correct answer is displayed
     /// If the user's answer is correct, their score is incremented
     /// The quiz is then repeated until the user has scored at least 8 points
-    pub fn start_quiz(self, seed: &Option<String>) {
+    pub fn start_quiz(self, count: &usize, seed: &Option<String>) {
         let mut words: Vec<Word> = self.get_words_from_file();
 
-        if words.len() < 10 {
-            println!("Not enough words for a quiz. Please add at least 10 words.");
+        if words.len() < *count {
+            println!(
+                "Not enough words for a quiz. Please add at least {} words.",
+                count
+            );
             return;
         }
 
@@ -144,13 +147,13 @@ impl Srs {
                 .map(|&i| &base_words[i])
                 .collect::<Vec<&Word>>()
         } else {
-            self.select_quiz_words(&base_words, 10)
+            self.select_quiz_words(&base_words, *count)
         };
 
         let mut score = 0;
 
         for (i, word) in quiz_words.iter().enumerate() {
-            println!("\nQuestion {} of 10:", i + 1);
+            println!("\nQuestion {} of {}:", i + 1, count);
 
             let answer = Text::new(&format!(
                 "What's the French translation of '{}'?",
@@ -180,13 +183,17 @@ impl Srs {
         // Save updated word stats
         self.save_words_to_file(&words);
 
+        // Calculate the quiz ratio
+        let ratio = score as f64 / *count as f64;
+
         println!(
-            "\n{} Your score: {} out of 10 {}",
+            "\n{} Your score: {} out of {} {}",
             "Quiz completed!".blue().bold(),
             score.to_string().yellow().bold(),
-            if score >= 8 {
+            count,
+            if ratio >= 0.8 {
                 "🏆"
-            } else if score >= 5 {
+            } else if ratio >= 0.5 {
                 "👍"
             } else {
                 "🌱"
