@@ -23,6 +23,8 @@ enum Commands {
     Add,
     #[clap(about = "Start a quiz session")]
     Quiz,
+    #[clap(about = "Deduplicate words")]
+    Deduplicate,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -32,6 +34,8 @@ struct Word {
     success: u32,
     tries: u32,
 }
+
+static WORDS_FILE: &str = "words.json";
 
 fn main() {
     let cli = Cli::parse();
@@ -46,26 +50,60 @@ fn main() {
         Commands::Quiz => {
             start_quiz();
         }
+        Commands::Deduplicate => {
+            deduplicate();
+        }
     }
 }
 
-fn add_word(japanese: &str, french: &str) {
-    let word = Word {
-        japanese: japanese.to_string(),
-        french: french.to_string(),
-        success: 0,
-        tries: 0,
-    };
-
-    let file_path = "words.json";
-    let mut words: Vec<Word> = if Path::new(file_path).exists() {
+fn get_words_from_file() -> Vec<Word> {
+    if Path::new(WORDS_FILE).exists() {
         // File exists, read its contents
-        let file = File::open(file_path).expect("Unable to open file");
+        let file = File::open(WORDS_FILE).expect("Unable to open file");
         let reader = BufReader::new(file);
         serde_json::from_reader(reader).unwrap_or_else(|_| Vec::new())
     } else {
         // File doesn't exist, start with an empty vector
         Vec::new()
+    }
+}
+
+fn save_words_to_file(words: &[Word]) {
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(WORDS_FILE)
+        .expect("Unable to open file for writing");
+
+    let writer = BufWriter::new(file);
+    serde_json::to_writer_pretty(writer, &words).expect("Unable to write to file");
+}
+
+fn deduplicate() {
+    let mut words: Vec<Word> = get_words_from_file();
+
+    let mut unique_words = Vec::new();
+
+    for word in words.iter() {
+        if !unique_words.contains(&word.japanese) {
+            unique_words.push(word.japanese.clone());
+        }
+    }
+
+    words.retain(|w| unique_words.contains(&w.japanese));
+
+    save_words_to_file(&words);
+}
+
+fn add_word(japanese: &str, french: &str) {
+    let mut words: Vec<Word> = get_words_from_file();
+
+    let word = Word {
+        japanese: japanese.to_string(),
+        french: french.to_string(),
+        success: 0,
+        tries: 0,
     };
 
     // Add the new word
@@ -76,7 +114,7 @@ fn add_word(japanese: &str, french: &str) {
         .write(true)
         .create(true)
         .truncate(true)
-        .open(file_path)
+        .open(WORDS_FILE)
         .expect("Unable to open file for writing");
 
     let writer = BufWriter::new(file);
@@ -97,10 +135,15 @@ fn select_quiz_words(words: &[Word], count: usize) -> Vec<&Word> {
             .map(|w| 1.0 - (w.success as f64 / w.tries.max(1) as f64))
             .sum();
 
+        println!("Total weight: {}", total_weight);
+
         let mut random_value = rng.gen::<f64>() * total_weight;
+
+        println!("Random value: {}", random_value);
 
         for word in words {
             let weight = 1.0 - (word.success as f64 / word.tries.max(1) as f64);
+            println!("Weight for word {}: {}", word.japanese, weight);
 
             if (random_value <= weight || word.tries == 0) && !selected_words.contains(&word) {
                 selected_words.push(word);
