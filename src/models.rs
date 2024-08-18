@@ -1,9 +1,10 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct Word {
+pub struct Card {
     pub japanese: String,
     pub french: String,
-    pub success: u32,
-    pub tries: u32,
+    pub box_number: usize,
+    pub next_review: DateTime<Utc>,
 }

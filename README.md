@@ -71,14 +71,6 @@ Specify the number of questions with the `-c` or `--count` option:
 nihongo quiz -c 15
 ```
 
-You can also provide a seed to start the quiz with a specific set of words:
-
-```sh
-nihongo quiz --seed=MjYsMjEsMjAsNiwyMywxLDEyLDIsMTgsMTQ=
-```
-
-Note: You need to have at least 10 words in your vocabulary list before you can take a quiz.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

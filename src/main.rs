@@ -1,7 +1,7 @@
 mod models;
 mod srs;
 
-use crate::srs::Srs;
+use crate::srs::LeitnerSystem;
 use clap::{Parser, Subcommand};
 use inquire::Text;
 use log::error;
@@ -25,32 +25,27 @@ enum Commands {
     Quiz {
         #[arg(short, long, default_value = "10")]
         count: usize,
-
-        #[arg(short, long)]
-        seed: Option<String>,
     },
 }
 
 fn app() -> Result<(), anyhow::Error> {
     let cli = Cli::parse();
-    let srs = Srs::new();
+    let srs = LeitnerSystem::new();
 
     match &cli.command {
         Commands::Add => {
             let japanese = Text::new("Enter the Japanese word:").prompt().unwrap();
             let french = Text::new("Enter the French translation:").prompt().unwrap();
 
-            match srs.add_word(&japanese, &french) {
+            match srs.add_card(&japanese, &french) {
                 Ok(message) => println!("{}", message),
-                Err(err) => println!("{}", err.to_string()),
+                Err(err) => println!("{}", err),
             }
         }
-        Commands::Quiz { count, seed } => {
-            match srs.start_quiz(count, seed) {
-                Ok(message) => println!("{}", message),
-                Err(err) => println!("{}", err.to_string()),
-            }
-        }
+        Commands::Quiz { count } => match srs.start_quiz(count) {
+            Ok(message) => println!("{}", message),
+            Err(err) => println!("{}", err),
+        },
     }
 
     Ok(())
