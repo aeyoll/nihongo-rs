@@ -26,6 +26,7 @@ enum Commands {
         #[arg(short, long, default_value = "10")]
         count: usize,
     },
+    List,
 }
 
 fn app() -> Result<(), anyhow::Error> {
@@ -43,6 +44,10 @@ fn app() -> Result<(), anyhow::Error> {
             }
         }
         Commands::Quiz { count } => match srs.start_quiz(count) {
+            Ok(message) => println!("{}", message),
+            Err(err) => println!("{}", err),
+        },
+        Commands::List => match srs.list_cards() {
             Ok(message) => println!("{}", message),
             Err(err) => println!("{}", err),
         },

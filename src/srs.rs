@@ -163,4 +163,17 @@ impl LeitnerSystem {
 
         Ok(message)
     }
+
+    /// List all cards in the vocabulary list
+    pub fn list_cards(&self) -> Result<String, anyhow::Error> {
+        let mut message = String::new();
+        let mut sorted_cards: Vec<_> = self.cards.iter().collect();
+        sorted_cards.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+        for (japanese, card) in sorted_cards {
+            message.push_str(&format!("{}: {}\n", japanese.yellow(), card.french.green()));
+        }
+
+        Ok(message)
+    }
 }
