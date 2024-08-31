@@ -7,4 +7,5 @@ pub struct Card {
     pub french: String,
     pub box_number: usize,
     pub next_review: DateTime<Utc>,
+    pub theme: String,
 }

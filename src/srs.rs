@@ -79,7 +79,12 @@ impl LeitnerSystem {
     }
 
     /// Add a new card to the vocabulary list and save it to the file
-    pub fn add_card(mut self, japanese: &str, french: &str) -> Result<String, anyhow::Error> {
+    pub fn add_card(
+        mut self,
+        japanese: &str,
+        french: &str,
+        theme: &str,
+    ) -> Result<String, anyhow::Error> {
         if self.cards.contains_key(japanese) {
             return Err(anyhow::anyhow!(
                 "{} Card already exists! 😕",
@@ -92,7 +97,9 @@ impl LeitnerSystem {
             french: french.to_string(),
             box_number: 0,
             next_review: Utc::now(),
+            theme: theme.to_string(),
         };
+
         self.cards.insert(japanese.to_string(), card);
         self.save_cards_to_file();
 
@@ -165,12 +172,21 @@ impl LeitnerSystem {
     }
 
     /// List all cards in the vocabulary list
-    pub fn list_cards(&self) -> Result<String, anyhow::Error> {
+    pub fn list_cards(&self, theme: &Option<String>) -> Result<String, anyhow::Error> {
         let mut message = String::new();
-        let mut sorted_cards: Vec<_> = self.cards.iter().collect();
-        sorted_cards.sort_by(|(a, _), (b, _)| a.cmp(b));
 
-        for (japanese, card) in sorted_cards {
+        let mut cards: Vec<_> = self.cards.iter().collect();
+        if let Some(theme) = theme {
+            cards = cards
+                .into_iter()
+                .filter(|(_, card)| card.theme == theme.to_string())
+                .collect();
+        }
+
+        // Sort
+        cards.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+        for (japanese, card) in cards {
             message.push_str(&format!("{}: {}\n", japanese.yellow(), card.french.green()));
         }
 

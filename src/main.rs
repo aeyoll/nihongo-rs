@@ -26,7 +26,10 @@ enum Commands {
         #[arg(short, long, default_value = "10")]
         count: usize,
     },
-    List,
+    List {
+        #[arg(short, long)]
+        theme: Option<String>,
+    },
 }
 
 fn app() -> Result<(), anyhow::Error> {
@@ -37,8 +40,9 @@ fn app() -> Result<(), anyhow::Error> {
         Commands::Add => {
             let japanese = Text::new("Enter the Japanese word:").prompt().unwrap();
             let french = Text::new("Enter the French translation:").prompt().unwrap();
+            let theme = Text::new("Enter the theme (optional):").prompt().unwrap();
 
-            match srs.add_card(&japanese, &french) {
+            match srs.add_card(&japanese, &french, &theme) {
                 Ok(message) => println!("{}", message),
                 Err(err) => println!("{}", err),
             }
@@ -47,7 +51,7 @@ fn app() -> Result<(), anyhow::Error> {
             Ok(message) => println!("{}", message),
             Err(err) => println!("{}", err),
         },
-        Commands::List => match srs.list_cards() {
+        Commands::List { theme } => match srs.list_cards(theme) {
             Ok(message) => println!("{}", message),
             Err(err) => println!("{}", err),
         },
